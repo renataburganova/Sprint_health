@@ -2,6 +2,7 @@ from django.db import models
 
 
 # Модель для задач
+
 class Task(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -20,3 +21,4 @@ class SprintData(models.Model):
 
     def __str__(self):
         return f"Sprint for task '{self.task.title}' assigned to {self.assignee}"
+
