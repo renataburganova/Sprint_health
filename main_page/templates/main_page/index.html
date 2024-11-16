@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оценка эффективности спринта</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script> <!-- Библиотека для работы с Excel файлами -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            font-weight: bold;
+        }
+        .form-group select, .form-group input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-right: 10px;
+        }
+        canvas {
+            margin-top: 30px;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Оценка эффективности спринта</h1>
+
+        <!-- Форма для множественного выбора -->
+        <div class="form-group">
+            <label for="team-select">Выберите команду</label>
+            <select id="team-select" multiple>
+                <option value="team1">Команда 1</option>
+                <option value="team2">Команда 2</option>
+                <option value="team3">Команда 3</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="metrics-select">Выберите метрики</label>
+            <select id="metrics-select" multiple>
+                <option value="metric1">Метрика 1</option>
+                <option value="metric2">Метрика 2</option>
+                <option value="metric3">Метрика 3</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="sprint-select">Выберите спринт</label>
+            <select id="sprint-select">
+                <option value="sprint1">Спринт 1</option>
+                <option value="sprint2">Спринт 2</option>
+                <option value="sprint3">Спринт 3</option>
+            </select>
+        </div>
+
+        <button id="start-button">Начать</button>
+        <button id="upload-button">Загрузить данные</button>
+
+        <!-- Место для диаграмм -->
+        <div id="charts" style="display:none;">
+            <canvas id="sprint-health-chart"></canvas>
+            <canvas id="sprint-rating-chart"></canvas>
+        </div>
+
+        <!-- Формы для загрузки файлов -->
+        <input type="file" id="excel-file1" accept=".xlsx" style="display: none;">
+        <input type="file" id="excel-file2" accept=".xlsx" style="display: none;">
+        <input type="file" id="excel-file3" accept=".xlsx" style="display: none;">
+    </div>
+
+    <script>
+        document.getElementById('upload-button').addEventListener('click', function() {
+            document.getElementById('excel-file1').click();
+            document.getElementById('excel-file2').click();
+            document.getElementById('excel-file3').click();
+        });
+
+        document.getElementById('start-button').addEventListener('click', function() {
+            document.getElementById('charts').style.display = 'block';
+            createCharts();
+        });
+
+        function createCharts() {
+            var ctx1 = document.getElementById('sprint-health-chart').getContext('2d');
+            var ctx2 = document.getElementById('sprint-rating-chart').getContext('2d');
+
+            // Круговая диаграмма "Здоровье спринта"
+            var sprintHealthChart = new Chart(ctx1, {
+                type: 'pie',
+                data: {
+                    labels: ['Завершено', 'В процессе', 'Не начато'],
+                    datasets: [{
+                        data: [60, 30, 10], // Примерные данные
+                        backgroundColor: ['#4CAF50', '#FFEB3B', '#F44336'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Диаграмма "Оценка спринта"
+            var sprintRatingChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Команда 1', 'Команда 2', 'Команда 3'],
+                    datasets: [{
+                        label: 'Оценка спринта',
+                        data: [85, 75, 90], // Примерные данные
+                        backgroundColor: '#2196F3',
+                        borderColor: '#1976D2',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 10
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Функция для загрузки данных из Excel файлов
+        function handleFile(fileInput, callback) {
+            fileInput.addEventListener('change', function(event) {
+                const files = event.target.files;
+                if (files.length > 0) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const data = e.target.result;
+                        const workbook = XLSX.read(data, { type: 'binary' });
+                        const sheetNames = workbook.SheetNames;
+                        const sheetData = sheetNames.map(function(sheetName) {
+                            return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+                        });
+                        callback(sheetData);
+                    };
+                    reader.readAsBinaryString(files[0]);
+                }
+            });
+        }
+
+        // Обработка загрузки всех файлов
+        handleFile(document.getElementById('excel-file1'), function(data) {
+            console.log('Данные из файла 1:', data);
+        });
+        handleFile(document.getElementById('excel-file2'), function(data) {
+            console.log('Данные из файла 2:', data);
+        });
+        handleFile(document.getElementById('excel-file3'), function(data) {
+            console.log('Данные из файла 3:', data);
+        });
+    </script>
+</body>
+</html>
