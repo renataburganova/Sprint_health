@@ -16,10 +16,10 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
-from main_page import views
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('main_page', views.main),
+    path('main_page/', include('main_page.urls')),  # Подключаем маршруты из приложения main_page
 ]
+
