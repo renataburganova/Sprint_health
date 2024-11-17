@@ -22,3 +22,24 @@ class SprintData(models.Model):
     def __str__(self):
         return f"Sprint for task '{self.task.title}' assigned to {self.assignee}"
 
+
+# Модель для данных в полях выбора
+class Team(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class Metric(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class Sprint(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
